@@ -18,6 +18,10 @@ When starting a new project, it takes some effort to implement Login / Sign-up s
 <img src="./tools/authui-demo-1.gif" />
 
 - [Live Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
+- [Login Component Templates - TailwindComponents](https://tailwindcomponents.com/search?query=login)
+- [Login Component Templates - TailwindUI templates](https://tailwindcomponents.com/search?query=login)
+
+<img src="./tools/templates.png" />
 
 ### Commands
 
