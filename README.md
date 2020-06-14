@@ -15,7 +15,7 @@ When starting a new project, it takes some effort to implement Login / Sign-up s
 - AuthUI takes care of user login & sign up logic.
 - Save dev time to focus on main ideas.
 
-<img src="./tools/authui-demo-1.gif" />
+<img src="./tools/authui-demo-2.gif" />
 
 - [Live Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
 - [Login Component Templates - TailwindComponents](https://tailwindcomponents.com/search?query=login)
