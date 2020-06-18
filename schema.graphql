@@ -7,6 +7,8 @@ type AuthPayload {
   user: User!
 }
 
+scalar DateTime
+
 type Mutation {
   createDraft(content: String, title: String!): Post!
   deletePost(id: Int!): Post
@@ -32,8 +34,19 @@ type Query {
 
 type User {
   accountId: String
+  active: Boolean!
+  createdAt: DateTime!
   email: String!
+  emailVerified: Boolean!
   id: Int!
+  lastLogin: DateTime
+  loginCount: Int
   name: String
+  phone: String
+  phoneVerified: Boolean!
+  picUrl: String
   posts: [Post!]!
+  resetAt: DateTime
+  updatedAt: DateTime!
+  uuid: String!
 }

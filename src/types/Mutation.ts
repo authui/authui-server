@@ -24,7 +24,7 @@ export const Mutation = mutationType({
           },
         })
         return {
-          token: sign({ userId: user.id }, APP_SECRET),
+          token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
           user,
         }
       },
@@ -50,7 +50,7 @@ export const Mutation = mutationType({
           throw new Error('Invalid password')
         }
         return {
-          token: sign({ userId: user.id }, APP_SECRET),
+          token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
           user,
         }
       },

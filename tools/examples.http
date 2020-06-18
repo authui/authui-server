@@ -1,0 +1,47 @@
+### API request examples (using vscode REST Client)
+
+@baseUrl = http://localhost:4001
+
+### List Posts (with author info)
+
+POST {{baseUrl}}
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+query {
+  feed {
+    id
+    title
+    content
+    published
+    author {
+      id
+      name
+      email
+    }
+  }
+}
+
+### Register - Sign Up
+
+POST {{baseUrl}}
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+mutation {
+  signup(accountId: "MyProduct", name: "Full Name", email: "demo1@gmail.com", password: "demo1") {
+    token
+  }
+}
+
+### Login
+
+POST {{baseUrl}}
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+mutation {
+  login(email: "demo1@gmail.com", password: "demo1") {
+    token
+  }
+}
