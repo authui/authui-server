@@ -3,7 +3,7 @@
 Authentication-as-a-service
 
 - [AuthUI repo: Login Components](https://github.com/authui/authui)
-- [Live Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
+- [Live Example](https://codesandbox.io/s/authui-example-with-login-component-source-code-8jswg?module=/src/LoginBox/LoginBox.tsx)
 
 <img src="./tools/diagram.png" />
 
@@ -17,7 +17,7 @@ When starting a new project, it takes some effort to implement Login / Sign-up s
 
 <img src="./tools/authui-demo-2.gif" />
 
-- [Live Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
+- [Live Example](https://codesandbox.io/s/authui-example-with-login-component-source-code-8jswg?module=/src/LoginBox/LoginBox.tsx)
 - [Login Component Templates - TailwindComponents](https://tailwindcomponents.com/search?query=login)
 - [Login Component Templates - TailwindUI templates](https://tailwindcomponents.com/search?query=login)
 
@@ -44,7 +44,7 @@ $ yarn dev
 
 ### Application flows:
 
-- Include the Login Component into the main app and customize it: [Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
+- Include the Login Component into the main app and customize it: [Example](https://codesandbox.io/s/authui-example-with-login-component-source-code-8jswg?module=/src/LoginBox/LoginBox.tsx)
 - The Login Component will make requests to AuthUI login or signup graphql endpoint.
 - AuthUI endpoints will respond with a JWT token (contains userId).
 
