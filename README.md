@@ -2,8 +2,8 @@
 
 Authentication-as-a-service
 
+- [AuthUI repo: Login Components](https://github.com/authui/authui)
 - [Live Example](https://codesandbox.io/s/authui-example-8jswg?module=/src/LoginPage/LoginPage.tsx)
-- API endpoint may change but data will be persisted.
 
 <img src="./tools/diagram.png" />
 
@@ -11,7 +11,7 @@ Authentication-as-a-service
 
 When starting a new project, it takes some effort to implement Login / Sign-up screens. Often times we have to repeat the same implementation again and again.
 
-- Authentication should be simple to remove frictions to get users started.
+- Authentication should be simple to remove frictions to build a MVP (Most Viable Product) or get users started.
 - AuthUI takes care of user login & sign up logic.
 - Save dev time to focus on main ideas.
 
