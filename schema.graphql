@@ -33,6 +33,7 @@ type Query {
 }
 
 type User {
+  accessToken: String
   accountId: String
   active: Boolean!
   createdAt: DateTime!
@@ -48,5 +49,6 @@ type User {
   posts: [Post!]!
   resetAt: DateTime
   updatedAt: DateTime!
+  username: String
   uuid: String!
 }

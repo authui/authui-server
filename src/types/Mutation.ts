@@ -2,6 +2,8 @@ import { intArg, mutationType, stringArg } from '@nexus/schema'
 import { compare, hash } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import { APP_SECRET, getUserId } from '../utils'
+import { v4 as uuidv4 } from 'uuid';
+import { omit } from 'lodash'
 
 export const Mutation = mutationType({
   definition(t) {
@@ -15,16 +17,19 @@ export const Mutation = mutationType({
       },
       resolve: async (_parent, { accountId, name, email, password }, ctx) => {
         const hashedPassword = await hash(password, 10)
+        const accessToken = uuidv4()
         const user = await ctx.prisma.user.create({
           data: {
             accountId,
             name,
             email,
+            accessToken,
             password: hashedPassword,
           },
         })
         return {
-          token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
+          // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
+          token: sign({ ...omit(user, 'id', 'password'), accessToken }, APP_SECRET),
           user,
         }
       },
@@ -49,8 +54,15 @@ export const Mutation = mutationType({
         if (!passwordValid) {
           throw new Error('Invalid password')
         }
+        // generate & update login token
+        const accessToken = uuidv4()
+        await ctx.prisma.user.update({
+          where: { id: user.id ?? -1 },
+          data: { accessToken },
+        })
         return {
-          token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
+          // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
+          token: sign({ ...omit(user, 'id', 'password'), accessToken }, APP_SECRET),
           user,
         }
       },
