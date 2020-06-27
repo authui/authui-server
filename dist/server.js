@@ -12,7 +12,7 @@ var server = new graphql_yoga_1.GraphQLServer({
     middlewares: [permissions_1.permissions]
 });
 server.express.use(cors());
-// server.express.options('*', cors());
+// server.express.options('*', cors()); // enable pre-flight across-the-board
 server.start({
     port: PORT,
     cors: {

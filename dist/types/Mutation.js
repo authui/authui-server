@@ -53,6 +53,7 @@ var bcryptjs_1 = require("bcryptjs");
 var jsonwebtoken_1 = require("jsonwebtoken");
 var utils_1 = require("../utils");
 var uuid_1 = require("uuid");
+var lodash_1 = require("lodash");
 exports.Mutation = schema_1.mutationType({
     definition: function (t) {
         var _this = this;
@@ -67,17 +68,19 @@ exports.Mutation = schema_1.mutationType({
             resolve: function (_parent, _a, ctx) {
                 var accountId = _a.accountId, name = _a.name, email = _a.email, password = _a.password;
                 return __awaiter(_this, void 0, void 0, function () {
-                    var hashedPassword, user;
+                    var hashedPassword, accessToken, user;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0: return [4 /*yield*/, bcryptjs_1.hash(password, 10)];
                             case 1:
                                 hashedPassword = _b.sent();
+                                accessToken = uuid_1.v4();
                                 return [4 /*yield*/, ctx.prisma.user.create({
                                         data: {
                                             accountId: accountId,
                                             name: name,
                                             email: email,
+                                            accessToken: accessToken,
                                             password: hashedPassword
                                         }
                                     })];
@@ -85,7 +88,7 @@ exports.Mutation = schema_1.mutationType({
                                 user = _b.sent();
                                 return [2 /*return*/, {
                                         // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-                                        token: jsonwebtoken_1.sign(__assign({}, user), utils_1.APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }
@@ -102,7 +105,7 @@ exports.Mutation = schema_1.mutationType({
             resolve: function (_parent, _a, ctx) {
                 var email = _a.email, password = _a.password;
                 return __awaiter(_this, void 0, void 0, function () {
-                    var user, passwordValid;
+                    var user, passwordValid, accessToken;
                     var _b;
                     return __generator(this, function (_c) {
                         switch (_c.label) {
@@ -122,14 +125,16 @@ exports.Mutation = schema_1.mutationType({
                                 if (!passwordValid) {
                                     throw new Error('Invalid password');
                                 }
-                                // generate & update login token
-                                ctx.prisma.user.update({
-                                    where: { id: (_b = user.id) !== null && _b !== void 0 ? _b : -1 },
-                                    data: { token: uuid_1.v4() }
-                                });
+                                accessToken = uuid_1.v4();
+                                return [4 /*yield*/, ctx.prisma.user.update({
+                                        where: { id: (_b = user.id) !== null && _b !== void 0 ? _b : -1 },
+                                        data: { accessToken: accessToken }
+                                    })];
+                            case 3:
+                                _c.sent();
                                 return [2 /*return*/, {
-                                        token: jsonwebtoken_1.sign({ userId: user.uuid, email: user.email }, utils_1.APP_SECRET),
-                                        // token: sign({ ...user }, APP_SECRET),
+                                        // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }

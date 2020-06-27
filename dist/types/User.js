@@ -8,7 +8,7 @@ exports.User = schema_1.objectType({
         t.model.accountId();
         t.model.id();
         t.model.uuid();
-        t.model.token();
+        t.model.accessToken();
         t.model.name();
         t.model.email();
         t.model.emailVerified();

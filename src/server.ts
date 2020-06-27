@@ -12,7 +12,7 @@ const server = new GraphQLServer({
   middlewares: [permissions]
 })
 server.express.use(cors());
-// server.express.options('*', cors());
+// server.express.options('*', cors()); // enable pre-flight across-the-board
 
 server.start({
   port: PORT,
