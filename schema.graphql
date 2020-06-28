@@ -34,6 +34,7 @@ type Query {
 
 type User {
   accessToken: String
+  accountAndEmail: String
   accountId: String
   active: Boolean!
   createdAt: DateTime!

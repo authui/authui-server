@@ -80,6 +80,7 @@ exports.Mutation = schema_1.mutationType({
                                             accountId: accountId,
                                             name: name,
                                             email: email,
+                                            accountAndEmail: accountId + "_" + email,
                                             accessToken: accessToken,
                                             password: hashedPassword
                                         }
@@ -88,7 +89,7 @@ exports.Mutation = schema_1.mutationType({
                                 user = _b.sent();
                                 return [2 /*return*/, {
                                         // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }
@@ -104,7 +105,7 @@ exports.Mutation = schema_1.mutationType({
                 password: schema_1.stringArg({ nullable: false })
             },
             resolve: function (_parent, _a, ctx) {
-                var email = _a.email, password = _a.password;
+                var accountId = _a.accountId, email = _a.email, password = _a.password;
                 return __awaiter(_this, void 0, void 0, function () {
                     var user, passwordValid, accessToken;
                     var _b;
@@ -112,7 +113,7 @@ exports.Mutation = schema_1.mutationType({
                         switch (_c.label) {
                             case 0: return [4 /*yield*/, ctx.prisma.user.findOne({
                                     where: {
-                                        email: email
+                                        accountAndEmail: accountId + "_" + email
                                     }
                                 })];
                             case 1:
@@ -135,7 +136,7 @@ exports.Mutation = schema_1.mutationType({
                                 _c.sent();
                                 return [2 /*return*/, {
                                         // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }

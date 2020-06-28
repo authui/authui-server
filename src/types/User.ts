@@ -9,6 +9,7 @@ export const User = objectType({
     t.model.accessToken()
     t.model.name()
     t.model.email()
+    t.model.accountAndEmail()
     t.model.emailVerified()
     t.model.username()
     t.model.phone()

@@ -11,6 +11,7 @@ exports.User = schema_1.objectType({
         t.model.accessToken();
         t.model.name();
         t.model.email();
+        t.model.accountAndEmail();
         t.model.emailVerified();
         t.model.username();
         t.model.phone();

@@ -23,13 +23,14 @@ export const Mutation = mutationType({
             accountId,
             name,
             email,
+            accountAndEmail: `${accountId}_${email}`,
             accessToken,
             password: hashedPassword,
           },
         })
         return {
           // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-          token: sign({ ...omit(user, 'id', 'password'), accessToken }, APP_SECRET),
+          token: sign({ ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken }, APP_SECRET),
           user,
         }
       },
@@ -42,10 +43,10 @@ export const Mutation = mutationType({
         email: stringArg({ nullable: false }),
         password: stringArg({ nullable: false }),
       },
-      resolve: async (_parent, { email, password }, ctx) => {
+      resolve: async (_parent, { accountId, email, password }, ctx) => {
         const user = await ctx.prisma.user.findOne({
           where: {
-            email,
+            accountAndEmail: `${accountId}_${email}`
           },
         })
         if (!user) {
@@ -63,7 +64,7 @@ export const Mutation = mutationType({
         })
         return {
           // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-          token: sign({ ...omit(user, 'id', 'password'), accessToken }, APP_SECRET),
+          token: sign({ ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken }, APP_SECRET),
           user,
         }
       },
