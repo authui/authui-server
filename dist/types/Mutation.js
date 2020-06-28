@@ -99,6 +99,7 @@ exports.Mutation = schema_1.mutationType({
         t.field('login', {
             type: 'AuthPayload',
             args: {
+                accountId: schema_1.stringArg({ nullable: false }),
                 email: schema_1.stringArg({ nullable: false }),
                 password: schema_1.stringArg({ nullable: false })
             },

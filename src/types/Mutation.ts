@@ -38,6 +38,7 @@ export const Mutation = mutationType({
     t.field('login', {
       type: 'AuthPayload',
       args: {
+        accountId: stringArg({ nullable: false }),
         email: stringArg({ nullable: false }),
         password: stringArg({ nullable: false }),
       },

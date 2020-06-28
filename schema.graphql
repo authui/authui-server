@@ -12,7 +12,7 @@ scalar DateTime
 type Mutation {
   createDraft(content: String, title: String!): Post!
   deletePost(id: Int!): Post
-  login(email: String!, password: String!): AuthPayload!
+  login(accountId: String!, email: String!, password: String!): AuthPayload!
   publish(id: Int): Post
   signup(accountId: String, email: String!, name: String, password: String!): AuthPayload!
 }
