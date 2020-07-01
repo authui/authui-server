@@ -21,7 +21,6 @@ exports.User = schema_1.objectType({
         t.model.picUrl();
         t.model.loginCount();
         t.model.lastLogin();
-        t.model.lastLogin();
         t.model.createdAt();
         t.model.updatedAt();
         t.model.resetAt();

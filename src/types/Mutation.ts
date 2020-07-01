@@ -2,7 +2,7 @@ import { intArg, mutationType, stringArg } from '@nexus/schema'
 import { compare, hash } from 'bcryptjs'
 import { sign } from 'jsonwebtoken'
 import { APP_SECRET, getUserId } from '../utils'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 import { omit } from 'lodash'
 
 export const Mutation = mutationType({
@@ -18,19 +18,22 @@ export const Mutation = mutationType({
       resolve: async (_parent, { accountId, name, email, password }, ctx) => {
         const hashedPassword = await hash(password, 10)
         const accessToken = uuidv4()
+        // create new User
         const user = await ctx.prisma.user.create({
           data: {
             accountId,
             name,
-            email,
-            accountAndEmail: `${accountId}_${email}`,
+            email: email.toLowerCase(),
+            accountAndEmail: `${accountId}_${email.toLowerCase()}`,
             accessToken,
             password: hashedPassword,
           },
         })
         return {
-          // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-          token: sign({ ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken }, APP_SECRET),
+          token: sign(
+            { ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken },
+            APP_SECRET
+          ),
           user,
         }
       },
@@ -44,27 +47,37 @@ export const Mutation = mutationType({
         password: stringArg({ nullable: false }),
       },
       resolve: async (_parent, { accountId, email, password }, ctx) => {
+        // console.log('ctx', ctx.request.headers['user-agent']); // 'referer'
         const user = await ctx.prisma.user.findOne({
           where: {
-            accountAndEmail: `${accountId}_${email}`
+            accountAndEmail: `${accountId}_${email.toLowerCase()}`,
           },
         })
         if (!user) {
           throw new Error(`No user found for email: ${email}`)
         }
+        if (!user.active) {
+          throw new Error(`User is not active.`)
+        }
         const passwordValid = await compare(password, user.password)
         if (!passwordValid) {
           throw new Error('Invalid password')
         }
-        // generate & update login token
+        // update User - generate & update login token
         const accessToken = uuidv4()
         await ctx.prisma.user.update({
           where: { id: user.id ?? -1 },
-          data: { accessToken },
+          data: {
+            accessToken,
+            loginCount: (user.loginCount || 0) + 1,
+            lastLogin: new Date() // new Date().toISOString().replace('T', ' ').substr(0, 19)
+          },
         })
         return {
-          // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
-          token: sign({ ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken }, APP_SECRET),
+          token: sign(
+            { ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken },
+            APP_SECRET
+          ),
           user,
         }
       },

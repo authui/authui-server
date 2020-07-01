@@ -79,8 +79,8 @@ exports.Mutation = schema_1.mutationType({
                                         data: {
                                             accountId: accountId,
                                             name: name,
-                                            email: email,
-                                            accountAndEmail: accountId + "_" + email,
+                                            email: email.toLowerCase(),
+                                            accountAndEmail: accountId + "_" + email.toLowerCase(),
                                             accessToken: accessToken,
                                             password: hashedPassword
                                         }
@@ -88,7 +88,6 @@ exports.Mutation = schema_1.mutationType({
                             case 2:
                                 user = _b.sent();
                                 return [2 /*return*/, {
-                                        // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
                                         token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
@@ -113,13 +112,16 @@ exports.Mutation = schema_1.mutationType({
                         switch (_c.label) {
                             case 0: return [4 /*yield*/, ctx.prisma.user.findOne({
                                     where: {
-                                        accountAndEmail: accountId + "_" + email
+                                        accountAndEmail: accountId + "_" + email.toLowerCase()
                                     }
                                 })];
                             case 1:
                                 user = _c.sent();
                                 if (!user) {
                                     throw new Error("No user found for email: " + email);
+                                }
+                                if (!user.active) {
+                                    throw new Error("User is not active.");
                                 }
                                 return [4 /*yield*/, bcryptjs_1.compare(password, user.password)];
                             case 2:
@@ -130,12 +132,15 @@ exports.Mutation = schema_1.mutationType({
                                 accessToken = uuid_1.v4();
                                 return [4 /*yield*/, ctx.prisma.user.update({
                                         where: { id: (_b = user.id) !== null && _b !== void 0 ? _b : -1 },
-                                        data: { accessToken: accessToken }
+                                        data: {
+                                            accessToken: accessToken,
+                                            loginCount: (user.loginCount || 0) + 1,
+                                            lastLogin: new Date() // new Date().toISOString().replace('T', ' ').substr(0, 19)
+                                        }
                                     })];
                             case 3:
                                 _c.sent();
                                 return [2 /*return*/, {
-                                        // token: sign({ userId: user.uuid, email: user.email }, APP_SECRET),
                                         token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
