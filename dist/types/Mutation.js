@@ -54,6 +54,35 @@ var jsonwebtoken_1 = require("jsonwebtoken");
 var utils_1 = require("../utils");
 var uuid_1 = require("uuid");
 var lodash_1 = require("lodash");
+var upsertAccount = function (_a) {
+    var ctx = _a.ctx, accountId = _a.accountId, email = _a.email;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var dbAccount, account;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, ctx.prisma.account.findOne({
+                        where: {
+                            accountId: accountId
+                        }
+                    })];
+                case 1:
+                    dbAccount = _b.sent();
+                    if (!!dbAccount) return [3 /*break*/, 3];
+                    return [4 /*yield*/, ctx.prisma.account.create({
+                            data: {
+                                accountId: accountId,
+                                name: accountId,
+                                ownerEmail: email.toLowerCase()
+                            }
+                        })];
+                case 2:
+                    account = _b.sent();
+                    _b.label = 3;
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+};
 exports.Mutation = schema_1.mutationType({
     definition: function (t) {
         var _this = this;
@@ -75,6 +104,11 @@ exports.Mutation = schema_1.mutationType({
                             case 1:
                                 hashedPassword = _b.sent();
                                 accessToken = uuid_1.v4();
+                                return [4 /*yield*/, upsertAccount({ ctx: ctx, accountId: accountId || '', email: email })
+                                    // create new User
+                                ];
+                            case 2:
+                                _b.sent();
                                 return [4 /*yield*/, ctx.prisma.user.create({
                                         data: {
                                             accountId: accountId,
@@ -85,7 +119,7 @@ exports.Mutation = schema_1.mutationType({
                                             password: hashedPassword
                                         }
                                     })];
-                            case 2:
+                            case 3:
                                 user = _b.sent();
                                 return [2 /*return*/, {
                                         token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
@@ -106,7 +140,7 @@ exports.Mutation = schema_1.mutationType({
             resolve: function (_parent, _a, ctx) {
                 var accountId = _a.accountId, email = _a.email, password = _a.password;
                 return __awaiter(_this, void 0, void 0, function () {
-                    var user, passwordValid, accessToken;
+                    var user, passwordValid, accessToken, lastUA, lastReferer;
                     var _b;
                     return __generator(this, function (_c) {
                         switch (_c.label) {
@@ -130,12 +164,16 @@ exports.Mutation = schema_1.mutationType({
                                     throw new Error('Invalid password');
                                 }
                                 accessToken = uuid_1.v4();
+                                lastUA = ctx.request.headers['user-agent'];
+                                lastReferer = ctx.request.headers['referer'];
                                 return [4 /*yield*/, ctx.prisma.user.update({
                                         where: { id: (_b = user.id) !== null && _b !== void 0 ? _b : -1 },
                                         data: {
                                             accessToken: accessToken,
                                             loginCount: (user.loginCount || 0) + 1,
-                                            lastLogin: new Date() // new Date().toISOString().replace('T', ' ').substr(0, 19)
+                                            lastLogin: new Date(),
+                                            lastUA: lastUA,
+                                            lastReferer: lastReferer
                                         }
                                     })];
                             case 3:

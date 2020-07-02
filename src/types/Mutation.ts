@@ -5,6 +5,24 @@ import { APP_SECRET, getUserId } from '../utils'
 import { v4 as uuidv4 } from 'uuid'
 import { omit } from 'lodash'
 
+const upsertAccount = async ({ ctx, accountId, email }: { ctx: any, accountId: string, email: string }) => {
+  const dbAccount = await ctx.prisma.account.findOne({
+    where: {
+      accountId
+    },
+  })
+  if (!dbAccount) {
+    // create new Account
+    const account = await ctx.prisma.account.create({
+      data: {
+        accountId,
+        name: accountId,
+        ownerEmail: email.toLowerCase()
+      },
+    })
+  }
+}
+
 export const Mutation = mutationType({
   definition(t) {
     t.field('signup', {
@@ -18,6 +36,7 @@ export const Mutation = mutationType({
       resolve: async (_parent, { accountId, name, email, password }, ctx) => {
         const hashedPassword = await hash(password, 10)
         const accessToken = uuidv4()
+        await upsertAccount({ ctx, accountId: accountId || '', email })
         // create new User
         const user = await ctx.prisma.user.create({
           data: {
@@ -65,12 +84,16 @@ export const Mutation = mutationType({
         }
         // update User - generate & update login token
         const accessToken = uuidv4()
+        const lastUA = ctx.request.headers['user-agent'];
+        const lastReferer = ctx.request.headers['referer'];
         await ctx.prisma.user.update({
           where: { id: user.id ?? -1 },
           data: {
             accessToken,
             loginCount: (user.loginCount || 0) + 1,
-            lastLogin: new Date() // new Date().toISOString().replace('T', ' ').substr(0, 19)
+            lastLogin: new Date(), // new Date().toISOString().replace('T', ' ').substr(0, 19)
+            lastUA,
+            lastReferer
           },
         })
         return {

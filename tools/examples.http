@@ -1,6 +1,9 @@
 ### API request examples (using vscode REST Client)
 
 @baseUrl = http://localhost:4001
+@testAccountId = MyProduct10
+@testEmail = demo10@gmail.com
+@testPassword = demo1010
 
 ### List Posts (with author info)
 
@@ -29,7 +32,7 @@ Content-Type: application/json
 X-Request-Type: GraphQL
 
 mutation {
-  signup(accountId: "MyProduct", name: "Full Name", email: "demo1@gmail.com", password: "demo1") {
+  signup(accountId: "{{testAccountId}}", name: "Full Name", email: "{{testEmail}}", password: "{{testPassword}}") {
     token
   }
 }
@@ -41,7 +44,7 @@ Content-Type: application/json
 X-Request-Type: GraphQL
 
 mutation {
-  login(email: "demo1@gmail.com", password: "demo1") {
+  login(accountId: "{{testAccountId}}", email: "{{testEmail}}", password: "{{testPassword}}") {
     token
   }
 }

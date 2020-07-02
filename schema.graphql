@@ -41,7 +41,11 @@ type User {
   email: String!
   emailVerified: Boolean!
   id: Int!
+  lastIP: String
+  lastLocation: String
   lastLogin: DateTime
+  lastReferer: String
+  lastUA: String
   loginCount: Int
   name: String
   phone: String

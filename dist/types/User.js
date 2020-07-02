@@ -21,6 +21,10 @@ exports.User = schema_1.objectType({
         t.model.picUrl();
         t.model.loginCount();
         t.model.lastLogin();
+        t.model.lastIP();
+        t.model.lastUA();
+        t.model.lastReferer();
+        t.model.lastLocation();
         t.model.createdAt();
         t.model.updatedAt();
         t.model.resetAt();
