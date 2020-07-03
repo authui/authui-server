@@ -54,6 +54,41 @@ var jsonwebtoken_1 = require("jsonwebtoken");
 var utils_1 = require("../utils");
 var uuid_1 = require("uuid");
 var lodash_1 = require("lodash");
+var path = require('path');
+var result = require('dotenv').config({ path: path.resolve(__dirname, '../../prisma/.env') });
+if (result.error) {
+    throw result.error;
+}
+else {
+    console.log('- .env loaded');
+}
+var mailgun = require('mailgun.js');
+var mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY });
+// In Progress - build URL to verify email:
+// const emailAfterSignUp = ({ accountName, toEmail }:{ accountName: string, toEmail: string }) => {
+//   const url ='http://nothing.com';
+//   mg.messages.create(process.env.MAILGUN_DOMAIN, {
+//     from: `Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
+//     to: [toEmail],
+//     subject: "Thank you for registering",
+//     text: `Thanks for registering with ${accountName} \n\nPlease click on the following link to verify your email address: \n${url}`
+//     // html: "<h1>Testing some Mailgun awesomness!</h1>"
+//   })
+//   .then((msg: string) => console.log(msg)) // logs response data
+//   .catch((err: any) => console.log(err)); // logs any error
+// }
+var emailForPasswordReset = function (_a) {
+    var accountName = _a.accountName, toEmail = _a.toEmail, newPassword = _a.newPassword;
+    mg.messages.create(process.env.MAILGUN_DOMAIN, {
+        from: "Registration <noreply@" + process.env.MAILGUN_DOMAIN + ">",
+        to: [toEmail],
+        subject: "Your temporary password",
+        text: "You have just made a request to reset your password for " + accountName + " \n\nBelow is your new password: \n" + newPassword
+        // html: "<h1>Testing some Mailgun awesomness!</h1>"
+    })
+        .then(function (msg) { return console.log(msg); }) // logs response data
+    ["catch"](function (err) { return console.log(err); }); // logs any error
+};
 var upsertAccount = function (_a) {
     var ctx = _a.ctx, accountId = _a.accountId, email = _a.email;
     return __awaiter(void 0, void 0, void 0, function () {
@@ -180,6 +215,55 @@ exports.Mutation = schema_1.mutationType({
                                 _c.sent();
                                 return [2 /*return*/, {
                                         token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
+                                        user: user
+                                    }];
+                        }
+                    });
+                });
+            }
+        });
+        t.field('resetPassword', {
+            type: 'AuthPayload',
+            args: {
+                accountId: schema_1.stringArg(),
+                email: schema_1.stringArg({ nullable: false })
+            },
+            resolve: function (_parent, _a, ctx) {
+                var accountId = _a.accountId, email = _a.email;
+                return __awaiter(_this, void 0, void 0, function () {
+                    var user, newPassword, _b, _c, _d, _e;
+                    var _f;
+                    return __generator(this, function (_g) {
+                        switch (_g.label) {
+                            case 0: return [4 /*yield*/, ctx.prisma.user.findOne({
+                                    where: {
+                                        accountAndEmail: accountId + "_" + email.toLowerCase()
+                                    }
+                                })];
+                            case 1:
+                                user = _g.sent();
+                                if (!user) {
+                                    throw new Error("No user found for email: " + email);
+                                }
+                                if (!user.active) {
+                                    throw new Error("User is not active.");
+                                }
+                                newPassword = uuid_1.v4();
+                                _c = (_b = ctx.prisma.user).update;
+                                _d = {
+                                    where: { id: (_f = user.id) !== null && _f !== void 0 ? _f : -1 }
+                                };
+                                _e = {};
+                                return [4 /*yield*/, bcryptjs_1.hash(newPassword, 10)];
+                            case 2: return [4 /*yield*/, _c.apply(_b, [(_d.data = (_e.password = _g.sent(),
+                                        _e.resetAt = new Date(),
+                                        _e),
+                                        _d)])];
+                            case 3:
+                                _g.sent();
+                                emailForPasswordReset({ accountName: (accountId || ''), toEmail: email, newPassword: newPassword });
+                                return [2 /*return*/, {
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: '' }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }
