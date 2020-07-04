@@ -16,6 +16,7 @@ type Mutation {
   publish(id: Int): Post
   resetPassword(accountId: String, email: String!): AuthPayload!
   signup(accountId: String, email: String!, name: String, password: String!): AuthPayload!
+  verifyEmail(emailVerificationToken: String!): AuthPayload!
 }
 
 type Post {
@@ -40,6 +41,7 @@ type User {
   active: Boolean!
   createdAt: DateTime!
   email: String!
+  emailVerificationToken: String
   emailVerified: Boolean!
   id: Int!
   lastIP: String

@@ -46,6 +46,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 exports.__esModule = true;
 exports.Mutation = void 0;
 var schema_1 = require("@nexus/schema");
@@ -64,6 +71,7 @@ else {
 }
 var mailgun = require('mailgun.js');
 var mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY });
+var omitFields = ['id', 'accountAndEmail', 'password', 'emailVerificationToken'];
 // In Progress - build URL to verify email:
 // const emailAfterSignUp = ({ accountName, toEmail }:{ accountName: string, toEmail: string }) => {
 //   const url ='http://nothing.com';
@@ -157,7 +165,7 @@ exports.Mutation = schema_1.mutationType({
                             case 3:
                                 user = _b.sent();
                                 return [2 /*return*/, {
-                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit.apply(void 0, __spreadArrays([user], omitFields))), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }
@@ -214,7 +222,7 @@ exports.Mutation = schema_1.mutationType({
                             case 3:
                                 _c.sent();
                                 return [2 /*return*/, {
-                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit(user, 'id', 'accountAndEmail', 'password')), { accessToken: accessToken }), utils_1.APP_SECRET),
+                                        token: jsonwebtoken_1.sign(__assign(__assign({}, lodash_1.omit.apply(void 0, __spreadArrays([user], omitFields))), { accessToken: accessToken }), utils_1.APP_SECRET),
                                         user: user
                                     }];
                         }

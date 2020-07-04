@@ -5,47 +5,82 @@ import { APP_SECRET, getUserId } from '../utils'
 import { v4 as uuidv4 } from 'uuid'
 import { omit } from 'lodash'
 
-const path = require('path');
-const result = require('dotenv').config({ path: path.resolve(__dirname, '../../prisma/.env') });
+const path = require('path')
+const result = require('dotenv').config({
+  path: path.resolve(__dirname, '../../prisma/.env'),
+})
 if (result.error) {
   throw result.error
 } else {
-  console.log('- .env loaded');
+  console.log('- .env loaded')
 }
 
-const mailgun = require('mailgun.js');
-const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY });
+const mailgun = require('mailgun.js')
+const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY })
+
+const omitFields = [
+  'id',
+  'accountAndEmail',
+  'password',
+  'emailVerificationToken',
+]
 
 // In Progress - build URL to verify email:
-// const emailAfterSignUp = ({ accountName, toEmail }:{ accountName: string, toEmail: string }) => {
-//   const url ='http://nothing.com';
-//   mg.messages.create(process.env.MAILGUN_DOMAIN, {
-//     from: `Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
-//     to: [toEmail],
-//     subject: "Thank you for registering",
-//     text: `Thanks for registering with ${accountName} \n\nPlease click on the following link to verify your email address: \n${url}`
-//     // html: "<h1>Testing some Mailgun awesomness!</h1>"
-//   })
-//   .then((msg: string) => console.log(msg)) // logs response data
-//   .catch((err: any) => console.log(err)); // logs any error
-// }
-
-const emailForPasswordReset = ({ accountName, toEmail, newPassword }:{ accountName: string, toEmail: string, newPassword: string }) => {
-  mg.messages.create(process.env.MAILGUN_DOMAIN, {
-    from: `Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
-    to: [toEmail],
-    subject: "Your temporary password",
-    text: `You have just made a request to reset your password for ${accountName} \n\nBelow is your new password: \n${newPassword}`
-    // html: "<h1>Testing some Mailgun awesomness!</h1>"
-  })
-  .then((msg: string) => console.log(msg)) // logs response data
-  .catch((err: any) => console.log(err)); // logs any error
+const emailAfterSignUp = ({
+  accountName,
+  toEmail,
+  emailVerificationToken,
+}: {
+  accountName: string
+  toEmail: string
+  emailVerificationToken: string
+}) => {
+  const url = `${process.env.API_BASE}/emailVerificationPage?emailVerificationToken=${emailVerificationToken}`
+  mg.messages
+    .create(process.env.MAILGUN_DOMAIN, {
+      from: `Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
+      to: [toEmail],
+      subject: 'Thank you for registering',
+      text: `Thanks for registering with ${accountName} \n\nPlease click on the following link to verify your email address: \n${url} \n\nThanks.`,
+      // html: "<h1>Testing some Mailgun awesomness!</h1>"
+    })
+    .then((msg: string) => console.log(msg)) // logs response data
+    .catch((err: any) => console.log(err)) // logs any error
 }
 
-const upsertAccount = async ({ ctx, accountId, email }: { ctx: any, accountId: string, email: string }) => {
+const emailForPasswordReset = ({
+  accountName,
+  toEmail,
+  newPassword,
+}: {
+  accountName: string
+  toEmail: string
+  newPassword: string
+}) => {
+  mg.messages
+    .create(process.env.MAILGUN_DOMAIN, {
+      from: `Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
+      to: [toEmail],
+      subject: 'Your temporary password',
+      text: `You have just made a request to reset your password for ${accountName} \n\nBelow is your new password: \n${newPassword}`,
+      // html: "<h1>Testing some Mailgun awesomness!</h1>"
+    })
+    .then((msg: string) => console.log(msg)) // logs response data
+    .catch((err: any) => console.log(err)) // logs any error
+}
+
+const upsertAccount = async ({
+  ctx,
+  accountId,
+  email,
+}: {
+  ctx: any
+  accountId: string
+  email: string
+}) => {
   const dbAccount = await ctx.prisma.account.findOne({
     where: {
-      accountId
+      accountId,
     },
   })
   if (!dbAccount) {
@@ -54,7 +89,7 @@ const upsertAccount = async ({ ctx, accountId, email }: { ctx: any, accountId: s
       data: {
         accountId,
         name: accountId,
-        ownerEmail: email.toLowerCase()
+        ownerEmail: email.toLowerCase(),
       },
     })
   }
@@ -73,6 +108,7 @@ export const Mutation = mutationType({
       resolve: async (_parent, { accountId, name, email, password }, ctx) => {
         const hashedPassword = await hash(password, 10)
         const accessToken = uuidv4()
+        const emailVerificationToken = uuidv4()
         await upsertAccount({ ctx, accountId: accountId || '', email })
         // create new User
         const user = await ctx.prisma.user.create({
@@ -81,13 +117,19 @@ export const Mutation = mutationType({
             name,
             email: email.toLowerCase(),
             accountAndEmail: `${accountId}_${email.toLowerCase()}`,
+            emailVerificationToken,
             accessToken,
             password: hashedPassword,
           },
         })
+        emailAfterSignUp({
+          accountName: accountId || '',
+          toEmail: email,
+          emailVerificationToken,
+        })
         return {
           token: sign(
-            { ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken },
+            { ...omit(user, ...omitFields), accessToken },
             APP_SECRET
           ),
           user,
@@ -121,8 +163,8 @@ export const Mutation = mutationType({
         }
         // update User - generate & update login token
         const accessToken = uuidv4()
-        const lastUA = ctx.request.headers['user-agent'];
-        const lastReferer = ctx.request.headers['referer'];
+        const lastUA = ctx.request.headers['user-agent']
+        const lastReferer = ctx.request.headers['referer']
         await ctx.prisma.user.update({
           where: { id: user.id ?? -1 },
           data: {
@@ -130,12 +172,12 @@ export const Mutation = mutationType({
             loginCount: (user.loginCount || 0) + 1,
             lastLogin: new Date(), // new Date().toISOString().replace('T', ' ').substr(0, 19)
             lastUA,
-            lastReferer
+            lastReferer,
           },
         })
         return {
           token: sign(
-            { ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken },
+            { ...omit(user, ...omitFields), accessToken },
             APP_SECRET
           ),
           user,
@@ -147,7 +189,7 @@ export const Mutation = mutationType({
       type: 'AuthPayload',
       args: {
         accountId: stringArg(),
-        email: stringArg({ nullable: false })
+        email: stringArg({ nullable: false }),
       },
       resolve: async (_parent, { accountId, email }, ctx) => {
         const user = await ctx.prisma.user.findOne({
@@ -161,18 +203,57 @@ export const Mutation = mutationType({
         if (!user.active) {
           throw new Error(`User is not active.`)
         }
-        const newPassword = uuidv4();
+        const newPassword = uuidv4()
         await ctx.prisma.user.update({
           where: { id: user.id ?? -1 },
           data: {
             password: await hash(newPassword, 10),
-            resetAt: new Date()
+            resetAt: new Date(),
           },
         })
-        emailForPasswordReset({ accountName: (accountId || ''), toEmail: email, newPassword });
+        emailForPasswordReset({
+          accountName: accountId || '',
+          toEmail: email,
+          newPassword,
+        })
         return {
           token: sign(
-            { ...omit(user, 'id', 'accountAndEmail', 'password'), accessToken: '' },
+            { ...omit(user, omitFields), accessToken: '' },
+            APP_SECRET
+          ),
+          user,
+        }
+      },
+    })
+
+    t.field('verifyEmail', {
+      type: 'AuthPayload',
+      args: {
+        // accountId: stringArg(),
+        // email: stringArg({ nullable: false }),
+        emailVerificationToken: stringArg({ nullable: false }),
+      },
+      resolve: async (_parent, { emailVerificationToken }, ctx) => {
+        const user = await ctx.prisma.user.findOne({
+          where: {
+            emailVerificationToken,
+          },
+        })
+        if (!user) {
+          throw new Error(`No user found for email: ${email}`)
+        }
+        if (!user.active) {
+          throw new Error(`User is not active.`)
+        }
+        await ctx.prisma.user.update({
+          where: { id: user.id ?? -1 },
+          data: {
+            emailVerified: true
+          },
+        })
+        return {
+          token: sign(
+            { ...omit(user, omitFields), accessToken: '' },
             APP_SECRET
           ),
           user,

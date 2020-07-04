@@ -11,6 +11,7 @@ export const User = objectType({
     t.model.email()
     t.model.accountAndEmail()
     t.model.emailVerified()
+    t.model.emailVerificationToken()
     t.model.username()
     t.model.phone()
     t.model.phoneVerified()

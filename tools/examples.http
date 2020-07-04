@@ -48,3 +48,15 @@ mutation {
     token
   }
 }
+
+### Verify Email
+
+POST {{baseUrl}}
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+mutation {
+  verifyEmail(accountId: "{{testAccountId}}", email: "{{testEmail}}", emailVerificationToken: "") {
+    token
+  }
+}
